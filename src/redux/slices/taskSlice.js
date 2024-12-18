@@ -126,6 +126,69 @@ export const updateTask = createAsyncThunk('updateTask', async (data, { rejectWi
 	}
 })
 
+export const markAsComplete = createAsyncThunk("markAsComplete", async (data, { dispatch, rejectWithValue }) => {
+	try {
+
+		const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/tasks/${data._id}/complete`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			credentials: "include"
+		})
+
+		if (!response.ok) {
+			if (response.status === 401 || response.status === 403) {
+				dispatch(logout())
+			}
+			const erroData = await response.json();
+			return rejectWithValue(erroData)
+		}
+
+		const res = await response.json()
+		return res;
+	}
+
+
+	catch (error) {
+		console.log(error)
+		return rejectWithValue(error)
+	}
+})
+
+export const markAsInProgress = createAsyncThunk("markAsInProgress", async (data, { dispatch, rejectWithValue }) => {
+	try {
+
+		const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/tasks/${data._id}/in-progress`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			credentials: "include"
+		})
+
+		if (!response.ok) {
+			if (response.status === 401 || response.status === 403) {
+				dispatch(logout())
+			}
+			const erroData = await response.json();
+			return rejectWithValue(erroData)
+		}
+
+		const res = await response.json()
+		return res;
+	}
+
+
+	catch (error) {
+		console.log(error)
+		return rejectWithValue(error)
+	}
+})
+
+//  get specific user 
+
+
 const initialState = {
 	isLoading: null,
 	isError: null,
@@ -226,6 +289,50 @@ export const taskSlice = createSlice({
 				state.isLoading = false;
 				state.isError = true;
 				console.log("error occured: ", action.payload)
+			})
+
+
+		// mark as a complete 
+
+		builder.addCase(markAsComplete.pending, (state) => {
+			state.isLoading = true;
+			state.isError = false;
+		})
+			.addCase(markAsComplete.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.isError = false;
+				state.tasks = state.tasks.map.filter((element) => {
+					if (element._id !== action.payload.data._id) {
+						return element
+					}
+					return action.payload.data
+				})
+			})
+			.addCase(markAsComplete.rejected, (state, action) => {
+				state.isError = true;
+				state.isLoading = false;
+				console.log("error occured : ", action.payload)
+			})
+
+		// in progress 
+		builder.addCase(markAsInProgress.pending, (state) => {
+			state.isLoading = true;
+			state.isError = false;
+		})
+			.addCase(markAsInProgress.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.isError = false;
+				state.tasks = state.tasks.map.filter((element) => {
+					if (element._id !== action.payload.data._id) {
+						return element
+					}
+					return action.payload.data
+				})
+			})
+			.addCase(markAsComplete.rejected, (state, action) => {
+				state.isError = true;
+				state.isLoading = false;
+				console.log("error occured : ", action.payload)
 			})
 	}
 })
